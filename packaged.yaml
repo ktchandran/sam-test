@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'python3.8
+
+  Sample SAM Template for omniapp
+
+  '
+Parameters:
+  applicationEnvironment:
+    Description: The current environment
+    Type: String
+    Default: dev
+    AllowedValues:
+    - dev
+    - qa
+    - stg
+    - prod
+Globals:
+  Function:
+    Timeout: 3
+Resources:
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName:
+        Ref: applicationEnvironment
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      ImageUri: '091021251638.dkr.ecr.us-east-1.amazonaws.com/omniapi'
+      Environment:
+        Variables:
+          APP_ENV:
+            Ref: applicationEnvironment
+      FunctionName:
+        Fn::Sub:
+        - omniapi-custom-data-load-${ENV}
+        - ENV:
+            Ref: applicationEnvironment
+      PackageType: Image
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /hello
+            Method: get
+            RestApiId:
+              Ref: ApiGatewayApi
+        HelloWorld2:
+          Type: Api
+          Properties:
+            Path: /hello2
+            Method: get
+            RestApiId:
+              Ref: ApiGatewayApi
+      Policies:
+      - Statement:
+        - Sid: GetConfig
+          Effect: Allow
+          Action:
+          - appconfig:GetConfiguration
+          Resource:
+            Fn::Sub: arn:aws:appconfig:${AWS::Region}:${AWS::AccountId}:*
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: ./
+      DockerTag: python3.8-v1

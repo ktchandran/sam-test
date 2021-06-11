@@ -1,0 +1,4 @@
+requests
+aws-wsgi
+connexion[swagger-ui]
+boto3
